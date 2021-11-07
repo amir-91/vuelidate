@@ -8,10 +8,18 @@
                         <form @submit.prevent="handleSubmit">
                             <div class="form-group">
                                 <label for="Name">Name</label>
-                                <input v-model="user.Name" id="Name" name="Name" class="form-control" :class="{ 'is-invalid': submitted && $v.user.Name.$error }" />
-                                <div v-if="submitted && $v.user.Name.$error" class="invalid-feedback">
-                                    <span v-if="!$v.user.Name.required">Name is required</span>
-                                    <span v-if="!$v.user.Name.alpha">Must be letters only</span>
+                                <input v-model="user.englishName" id="english-name" name="Name" class="form-control" :class="{ 'is-invalid': submitted && $v.user.englishName.$error }" />
+                                <div v-if="submitted && $v.user.englishName.$error" class="invalid-feedback">
+                                    <span v-if="!$v.user.englishName.required">Name is required</span>
+                                    <span v-if="!$v.user.englishName.alpha">Must be english letters only</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="Name">الاسم</label>
+                                <input v-model="user.arabicName" id="arabic-name" name="Name" class="form-control" :class="{ 'is-invalid': submitted && $v.user.arabicName.$error }" />
+                                <div v-if="submitted && $v.user.arabicName.$error" class="invalid-feedback">
+                                    <span v-if="!$v.user.arabicName.required">الاسم مطلوب</span>
+                                    <span v-if="!$v.user.arabicName.arabicAlpha">يجب ان يحتوى على حروف عربى فقط</span>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -53,9 +61,43 @@
                                      <option value="barbudans">Barbudans</option>
                                      <option value="batswana">Batswana</option>
                                      <option value="belarusian">Belarusian</option>
+                                     <option value="Egypt">Egypt</option>
                                  </select>
                                 <div v-if="submitted && $v.user.nationality.$error" class="invalid-feedback">
                                     <span v-if="!$v.user.nationality.required">nationality is required</span>
+                                </div>
+                            </div>
+                             <div v-if="user.nationality === 'Egypt'" class="form-group">
+                                <label for="nationalId">National ID</label>
+                                <input v-model="user.nationalId" id="nationalId" name="nationalId" class="form-control" :class="{ 'is-invalid': submitted && $v.user.nationalId.$error }" />
+                                <div v-if="submitted && $v.user.nationalId.$error" class="invalid-feedback">
+                                    <span v-if="!$v.user.nationalId.required">national Id is required</span>
+                                    <span v-if="!$v.user.nationalId.numeric">Must be numbers only</span><br>
+                                    <span v-if="!$v.user.nationalId.maxLength || !$v.user.nationalId.minLength">Must be 14 digits</span>
+                                </div>
+                            </div>
+                             <div v-if="user.nationality !== 'Egypt' && user.nationality !== ''" class="form-group">
+                                <label for="passportNumber">Passport number</label>
+                                <input v-model="user.passportNumber" id="passportNumber" name="passportNumber" class="form-control" :class="{ 'is-invalid': submitted && $v.user.passportNumber.$error }" />
+                                <div v-if="submitted && $v.user.passportNumber.$error" class="invalid-feedback">
+                                    <span v-if="!$v.user.passportNumber.required">Passport number is required</span>
+                                    <span v-if="!$v.user.passportNumber.numeric">Must be numbers only</span>
+                                </div>
+                            </div>
+                             <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" v-model="user.password" id="password" name="password" class="form-control" :class="{ 'is-invalid': submitted && $v.user.password.$error }" />
+                                <div v-if="submitted && $v.user.password.$error" class="invalid-feedback">
+                                    <span v-if="!$v.user.password.required">Password is required</span>
+                                    <span v-if="!$v.user.password.minLength">Password must be at least 6 characters</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm Password</label>
+                                <input type="password" v-model="user.confirmPassword" id="confirmPassword" name="confirmPassword" class="form-control" :class="{ 'is-invalid': submitted && $v.user.confirmPassword.$error }" />
+                                <div v-if="submitted && $v.user.confirmPassword.$error" class="invalid-feedback">
+                                    <span v-if="!$v.user.confirmPassword.required">Confirm Password is required</span>
+                                    <span v-else-if="!$v.user.confirmPassword.sameAsPassword">Passwords must match</span>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -77,29 +119,39 @@
 </template>
 
 <script>
-    import { required, email, numeric, alpha } from "vuelidate/lib/validators";
-
+    import { required, email, numeric, alpha, minLength, sameAs, maxLength, helpers } from "vuelidate/lib/validators";
+    const arabicAlpha = helpers.regex('alpha', /[\u0600-\u06FF]/)
     export default {
         name: "app",
         data() {
             return {
                 user: {
-                    Name: "",
+                    englishName: "",
+                    arabicName: "",
                     mobile: "",
                     email: "",
                     nationality: "",
-                    textarea: ""
+                    textarea: "",
+                    password: "",
+                    confirmPassword: "",
+                    nationalId: "",
+                    passportNumber: "",
                 },
                 submitted: false
             };
         },
         validations: {
             user: {
-                Name: { required, alpha },
+                englishName: { required, alpha },
+                arabicName: { required, arabicAlpha },
                 mobile: { required, numeric },
                 nationality: { required },
                 email: { required, email },
-                textarea: { required }
+                textarea: { required },
+                password: { required, minLength: minLength(6) },
+                confirmPassword: { required, sameAsPassword: sameAs('password') },
+                nationalId: { required, numeric, minLength: minLength(14), maxLength: maxLength(14) },
+                passportNumber: { required, numeric },
             }
         },
         methods: {
