@@ -120,7 +120,7 @@
 
 <script>
     import { required, email, numeric, alpha, minLength, sameAs, maxLength, helpers } from "vuelidate/lib/validators";
-    const arabicAlpha = helpers.regex('alpha', /[\u0600-\u06FF]/)
+    const arabicAlpha = helpers.regex('alpha', /^[\u0621-\u064A\040]+$/)
     export default {
         name: "app",
         data() {
