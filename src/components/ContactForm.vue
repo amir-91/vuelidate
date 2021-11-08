@@ -40,7 +40,7 @@
                             </div>
                              <div class="form-group">
                                 <label for="nationality">Nationality</label>
-                                <select name="nationality" v-model="user.nationality" id="nationality" class="form-control" :class="{ 'is-invalid': submitted && $v.user.nationality.$error }">
+                                <select name="nationality" @input="reset" v-model="user.nationality" id="nationality" class="form-control" :class="{ 'is-invalid': submitted && $v.user.nationality.$error }">
                                      <option value="">-- select one --</option>
                                      <option value="afghan">Afghan</option>
                                      <option value="albanian">Albanian</option>
@@ -101,6 +101,24 @@
                                 </div>
                             </div>
                             <div class="form-group">
+                                <label for="image">Attach photo</label>
+                                <input type="file" @change="onImageChange" id="image" name="image" class="form-control" :class="{ 'is-invalid': submitted && $v.image.$error || imageFlag || imgExt }" />
+                                <div v-if="submitted || $v.image.$error || imgExt || imageFlag " class="invalid-feedback">
+                                    <span v-if="!$v.image.required">Photo is required</span>
+                                    <span v-if="imgExt">accept png or jpeg only</span> <br>
+                                    <span v-if="imageFlag">5 mega only</span>
+                                </div>
+                            </div>
+                              <div class="form-group">
+                                <label for="pdf">Attach file</label>
+                                <input type="file" @change="onFileChange" id="pdf" name="pdf" class="form-control" :class="{ 'is-invalid': submitted && $v.pdf.$error || pdfFlag || pdfExt }" />
+                                <div v-if="submitted || $v.pdf.$error || pdfFlag || pdfExt" class="invalid-feedback">
+                                    <span v-if="!$v.pdf.required">File is required</span>
+                                    <span v-if="pdfExt">accept pdf only</span> <br>
+                                    <span v-if="pdfFlag">5 mega only</span>
+                                </div>
+                            </div> 
+                            <div class="form-group">
                                 <label for="email">Message</label>
                                 <textarea name="textarea" rows="6" v-model="user.textarea" id="textarea" class="form-control" :class="{ 'is-invalid': submitted && $v.user.textarea.$error }"/>
                                 <div v-if="submitted && $v.user.textarea.$error" class="invalid-feedback">
@@ -119,8 +137,9 @@
 </template>
 
 <script>
-    import { required, email, numeric, alpha, minLength, sameAs, maxLength, helpers } from "vuelidate/lib/validators";
+    import { required, email, numeric, alpha, minLength, sameAs, maxLength, helpers, requiredIf } from "vuelidate/lib/validators";
     const arabicAlpha = helpers.regex('alpha', /^[\u0621-\u064A\040]+$/)
+
     export default {
         name: "app",
         data() {
@@ -137,7 +156,17 @@
                     nationalId: "",
                     passportNumber: "",
                 },
-                submitted: false
+                submitted: false,
+                image: "",
+                pdf: "",
+                imageSize: 0,
+                pdfSize: 0,
+                imageFlag: false,
+                pdfFlag: false,
+                imageExtension: "",
+                pdfExtension: "",
+                imgExt: false,
+                pdfExt: false
             };
         },
         validations: {
@@ -150,14 +179,29 @@
                 textarea: { required },
                 password: { required, minLength: minLength(6) },
                 confirmPassword: { required, sameAsPassword: sameAs('password') },
-                nationalId: { required, numeric, minLength: minLength(14), maxLength: maxLength(14) },
-                passportNumber: { required, numeric },
-            }
+                nationalId: { 
+                    required: requiredIf(function () {
+                        const req = this.$v.user.nationality.$model === 'Egypt'
+                        return req
+                    }),
+                    numeric, 
+                    minLength: minLength(14), 
+                    maxLength: maxLength(14) 
+                    },
+                passportNumber: { 
+                    required: requiredIf(function() {
+                        const req = this.$v.user.nationality.$model !== 'Egypt'
+                        return req
+                    }),
+                    numeric 
+                    },
+            },
+            image: { required },
+            pdf: { required }
         },
         methods: {
             handleSubmit() {
                 this.submitted = true;
-
                 // stop here if form is invalid
                 this.$v.$touch();
                 if (this.$v.$invalid) {
@@ -165,7 +209,68 @@
                 }
 
                 alert("SUCCESS!! :-)\n\n" + JSON.stringify(this.user));
-            }
+            },
+            onImageChange(e) {
+              const files = e.target.files || e.dataTransfer.files;
+              this.imageSize =files[0].size
+              this.imageExtension=files[0].type.split('/')[1]
+              console.log(this.imageExtension)
+              if (!files.length)
+                return;
+              this.createImage(files[0]);
+              if (this.imageSize > 500000) {
+                    this.imageFlag = true
+                } else {
+                    this.imageFlag = false
+                }
+              if (this.imageExtension !== 'jpeg') {
+                  this.imgExt = true
+              } else {
+                  this.imgExt = false
+              }
+              console.log(this.imgExt)
+            },
+             onFileChange(e) {
+              const files = e.target.files || e.dataTransfer.files;
+              this.fileSize =files[0].size
+              this.pdfExtension=files[0].type.split('/')[1]
+              console.log(this.pdfExtension)
+              if (!files.length)
+                return;
+              this.createFile(files[0]);
+              if (this.fileSize > 500000) {
+                    this.pdfFlag = true
+                } else {
+                    this.pdfFlag = false
+                }
+              if (this.pdfExtension !== 'pdf') {
+                  this.pdfExt = true
+              } else {
+                  this.pdfExt = false
+              }
+            }, 
+            createImage(file) {
+              const reader = new FileReader();
+              const vm = this;
+
+              reader.onload = (e) => {
+                vm.image = e.target.result;
+              };
+              reader.readAsDataURL(file);
+            },
+             createFile(file) {
+              const reader = new FileReader();
+              const vm = this;
+
+              reader.onload = (e) => {
+                vm.pdf = e.target.result;
+              };
+              reader.readAsDataURL(file);
+            },
+            reset() {
+                this.user.passportNumber = "",
+                this.user.nationalId = ""
+            },
+         }
         }
-    };
 </script>
