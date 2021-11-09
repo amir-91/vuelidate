@@ -108,6 +108,9 @@
                                     <span v-if="imgExt">accept png or jpeg only</span> <br>
                                     <span v-if="imageFlag">5 mega only</span>
                                 </div>
+                                <div class="image-preview" v-if="image.length > 0 || $v.image.$error">
+                                    <img class="preview" :src="image">
+                                </div>
                             </div>
                               <div class="form-group">
                                 <label for="pdf">Attach file</label>
@@ -254,6 +257,7 @@
                 vm.image = e.target.result;
               };
               reader.readAsDataURL(file);
+              console.log(reader)
             },
              createFile(file) {
               const reader = new FileReader();
@@ -271,3 +275,16 @@
          }
         }
 </script>
+
+<style scoped>
+.file-upload-form, .image-preview {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    padding: 20px;
+}
+img.preview {
+    width: 200px;
+    background-color: white;
+    border: 1px solid #DDD;
+    padding: 5px;
+}
+</style>
