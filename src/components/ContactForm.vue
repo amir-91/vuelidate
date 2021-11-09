@@ -214,7 +214,6 @@
               const files = e.target.files || e.dataTransfer.files;
               this.imageSize =files[0].size
               this.imageExtension=files[0].type.split('/')[1]
-              console.log(this.imageExtension)
               if (!files.length)
                 return;
               this.createImage(files[0]);
@@ -228,13 +227,11 @@
               } else {
                   this.imgExt = false
               }
-              console.log(this.imgExt)
             },
              onFileChange(e) {
               const files = e.target.files || e.dataTransfer.files;
               this.fileSize =files[0].size
               this.pdfExtension=files[0].type.split('/')[1]
-              console.log(this.pdfExtension)
               if (!files.length)
                 return;
               this.createFile(files[0]);
